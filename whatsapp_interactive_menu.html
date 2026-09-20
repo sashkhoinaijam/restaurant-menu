@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spice & Heritage - Order Now</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            light: '#fff5f0',
+                            DEFAULT: '#ea580c', // Orange/Rust
+                            dark: '#9a3412',
+                        }
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s ease-out forwards',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        html { scroll-behavior: smooth; }
+        body { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 antialiased font-sans">
+
+    <main class="max-w-md mx-auto bg-gray-50 min-h-screen shadow-2xl relative pb-24">
+        
+        <!-- Header -->
+        <header class="bg-white px-6 py-6 text-center shadow-sm sticky top-0 z-40">
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Spice & Heritage</h1>
+            <p class="text-brand text-xs font-semibold tracking-widest uppercase mt-1">Tap to add items</p>
+        </header>
+
+        <!-- Menu Container (Populated by JS) -->
+        <div id="menu-container" class="px-4 py-6 space-y-8">
+            <!-- Items injected here -->
+        </div>
+
+        <div id="bottom-cart-bar" class="fixed bottom-0 w-full max-w-md bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 flex justify-between items-center z-40 transform translate-y-full transition-transform duration-300">
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Amount</span>
+                <span id="cart-total-bar" class="text-xl font-bold text-gray-900">₹ 0</span>
+            </div>
+            <button onclick="toggleCartModal()" class="bg-brand hover:bg-brand-dark text-white px-6 py-3 rounded-xl font-semibold shadow-md transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                View Cart (<span id="cart-count">0</span>)
+            </button>
+        </div>
+
+        <div id="cart-modal" class="fixed inset-0 bg-gray-900/60 z-50 hidden flex-col justify-end max-w-md mx-auto">
+            <div class="bg-white rounded-t-3xl w-full h-[85vh] flex flex-col animate-slide-up">
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center p-5 border-b border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-900">Your Order</h2>
+                    <button onclick="toggleCartModal()" class="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body (Items) -->
+                <div id="cart-items-container" class="flex-1 overflow-y-auto p-5 space-y-4">
+                    <!-- Cart items injected here -->
+                </div>
+
+                <!-- Additional Details & Checkout -->
+                <div class="p-5 border-t border-gray-100 bg-gray-50">
+                    <div class="mb-3">
+                        <label for="customer-name" class="block text-sm font-medium text-gray-700 mb-1">Customer Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="customer-name" placeholder="Enter your name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brand focus:border-brand outline-none">
+                    </div>
+                    <div class="mb-4">
+                        <label for="table-number" class="block text-sm font-medium text-gray-700 mb-1">Table Number <span class="text-red-500">*</span></label>
+                        <input type="text" id="table-number" placeholder="e.g. 4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brand focus:border-brand outline-none">
+                    </div>
+                    
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-gray-600 font-medium">Grand Total</span>
+                        <span id="cart-modal-total" class="text-2xl font-bold text-gray-900">₹ 0</span>
+                    </div>
+
+                    <button onclick="sendOrderToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-4 rounded-xl font-bold text-lg shadow-lg flex justify-center items-center gap-2 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                        </svg>
+                        Send to WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Toast/Message Box -->
+        <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full text-sm font-medium shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+            Message
+        </div>
+    </main>
+
+    <script>
+        // Set the restaurant's WhatsApp phone number here (include country code, no +)
+        const RESTAURANT_WHATSAPP_NUMBER = "919000000000"; 
+
+        // Menu Data structure
+        const menuData = [
+            {
+                category: "Starters",
+                items: [
+                    { id: 's1', name: 'Punjabi Samosa (2 pcs)', desc: 'Crispy pastry filled with spiced potatoes.', price: 90, type: 'veg' },
+                    { id: 's2', name: 'Paneer Tikka', desc: 'Marinated cottage cheese cooked in tandoor.', price: 240, type: 'veg' },
+                    { id: 's3', name: 'Chicken 65', desc: 'Spicy, deep-fried chicken bites.', price: 280, type: 'non-veg' }
+                ]
+            },
+            {
+                category: "Main Course",
+                items: [
+                    { id: 'm1', name: 'Butter Chicken', desc: 'Chicken simmered in rich creamy tomato gravy.', price: 380, type: 'non-veg' },
+                    { id: 'm2', name: 'Dal Makhani', desc: 'Black lentils slow-cooked with butter.', price: 260, type: 'veg' },
+                    { id: 'm3', name: 'Palak Paneer', desc: 'Cottage cheese in mild spiced spinach puree.', price: 290, type: 'veg' }
+                ]
+            },
+            {
+                category: "Breads & Rice",
+                items: [
+                    { id: 'b1', name: 'Garlic Naan', desc: 'Topped with crushed garlic & coriander.', price: 70, type: 'veg' },
+                    { id: 'b2', name: 'Chicken Dum Biryani', desc: 'Aromatic basmati rice with marinated chicken.', price: 350, type: 'non-veg' }
+                ]
+            }
+        ];
+
+        // Cart state
+        let cart = {};
+
+        // Helper function for Icons
+        const getFoodIcon = (type) => {
+            if(type === 'veg') {
+                return `<div class="w-4 h-4 border border-green-600 flex-shrink-0 flex items-center justify-center rounded-sm"><div class="w-2 h-2 bg-green-600 rounded-full"></div></div>`;
+            }
+            return `<div class="w-4 h-4 border border-red-600 flex-shrink-0 flex items-center justify-center rounded-sm"><div class="w-2 h-2 bg-red-600 rounded-full"></div></div>`;
+        };
+
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            let html = '';
+
+            menuData.forEach(section => {
+                html += `<section class="mb-8">
+                            <h2 class="text-xl font-bold text-gray-900 border-b border-gray-200 pb-2 mb-4">${section.category}</h2>
+                            <div class="space-y-4">`;
+                
+                section.items.forEach(item => {
+                    html += `
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex justify-between items-center gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    ${getFoodIcon(item.type)}
+                                    <h3 class="font-semibold text-gray-900 leading-tight">${item.name}</h3>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-2 leading-snug">${item.desc}</p>
+                                <div class="font-bold text-gray-900">₹ ${item.price}</div>
+                            </div>
+                            
+                            <!-- Quantity Controls -->
+                            <div class="flex-shrink-0">
+                                <div id="controls-${item.id}" class="flex items-center bg-brand-light border border-brand/20 rounded-lg overflow-hidden h-9 w-24">
+                                    <button onclick="updateQuantity('${item.id}', -1)" class="w-8 h-full flex items-center justify-center text-brand hover:bg-brand hover:text-white transition-colors font-bold text-lg">-</button>
+                                    <div id="qty-${item.id}" class="flex-1 flex items-center justify-center font-semibold text-gray-900 text-sm">0</div>
+                                    <button onclick="updateQuantity('${item.id}', 1)" class="w-8 h-full flex items-center justify-center text-brand hover:bg-brand hover:text-white transition-colors font-bold text-lg">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div></section>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateQuantity(itemId, change) {
+            // Find item data
+            let itemData = null;
+            menuData.forEach(cat => {
+                const found = cat.items.find(i => i.id === itemId);
+                if(found) itemData = found;
+            });
+
+            if (!itemData) return;
+
+            // Initialize in cart if not exists
+            if (!cart[itemId]) {
+                cart[itemId] = { ...itemData, quantity: 0 };
+            }
+
+            // Update quantity
+            const newQty = cart[itemId].quantity + change;
+            
+            if (newQty > 0) {
+                cart[itemId].quantity = newQty;
+            } else {
+                delete cart[itemId];
+            }
+
+            updateUI();
+        }
+
+        function getCartTotal() {
+            let total = 0;
+            let count = 0;
+            Object.values(cart).forEach(item => {
+                total += (item.price * item.quantity);
+                count += item.quantity;
+            });
+            return { total, count };
+        }
+
+        function updateUI() {
+            // Update individual item counts on the main menu
+            menuData.forEach(cat => {
+                cat.items.forEach(item => {
+                    const qtyElement = document.getElementById(`qty-${item.id}`);
+                    if(qtyElement) {
+                        qtyElement.innerText = cart[item.id] ? cart[item.id].quantity : '0';
+                    }
+                });
+            });
+
+            const { total, count } = getCartTotal();
+            const bottomBar = document.getElementById('bottom-cart-bar');
+            
+            // Update Sticky Bar
+            document.getElementById('cart-total-bar').innerText = `₹ ${total}`;
+            document.getElementById('cart-count').innerText = count;
+
+            // Show/Hide bottom bar
+            if (count > 0) {
+                bottomBar.classList.remove('translate-y-full');
+            } else {
+                bottomBar.classList.add('translate-y-full');
+                // Auto close modal if cart becomes empty
+                if(!document.getElementById('cart-modal').classList.contains('hidden')){
+                    toggleCartModal();
+                }
+            }
+
+            // Render Cart Modal Items
+            renderCartModal();
+        }
+
+        function renderCartModal() {
+            const container = document.getElementById('cart-items-container');
+            const { total } = getCartTotal();
+            let html = '';
+
+            if (Object.keys(cart).length === 0) {
+                html = `<div class="text-center text-gray-500 py-10">Your cart is empty.</div>`;
+            } else {
+                Object.values(cart).forEach(item => {
+                    html += `
+                        <div class="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    ${getFoodIcon(item.type)}
+                                    <span class="font-medium text-gray-900">${item.name}</span>
+                                </div>
+                                <div class="text-sm text-gray-500 mt-1">₹${item.price} x ${item.quantity} = ₹${item.price * item.quantity}</div>
+                            </div>
+                            <div class="flex items-center bg-gray-100 rounded-lg overflow-hidden h-8 w-20">
+                                <button onclick="updateQuantity('${item.id}', -1)" class="w-7 h-full flex items-center justify-center text-gray-600 hover:bg-gray-200">-</button>
+                                <div class="flex-1 flex items-center justify-center font-medium text-sm">${item.quantity}</div>
+                                <button onclick="updateQuantity('${item.id}', 1)" class="w-7 h-full flex items-center justify-center text-gray-600 hover:bg-gray-200">+</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+            document.getElementById('cart-modal-total').innerText = `₹ ${total}`;
+        }
+
+        function toggleCartModal() {
+            const modal = document.getElementById('cart-modal');
+            if (modal.classList.contains('hidden')) {
+                const { count } = getCartTotal();
+                if (count === 0) {
+                    showToast("Please add items to cart first.");
+                    return;
+                }
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+
+        function sendOrderToWhatsApp() {
+            const customerName = document.getElementById('customer-name').value.trim();
+            const tableNo = document.getElementById('table-number').value.trim();
+            const { total } = getCartTotal();
+            
+            if (total === 0) {
+                showToast("Cart is empty");
+                return;
+            }
+
+            if (!customerName || !tableNo) {
+                showToast("Please enter both Name and Table Number");
+                return;
+            }
+
+            let message = `🍽️ *NEW ORDER* 🍽️\n`;
+            message += `*Customer:* ${customerName}\n`;
+            message += `*Table No:* ${tableNo}\n`;
+            message += `-------------------------\n`;
+
+            Object.values(cart).forEach(item => {
+                // Formatting: 2x Butter Chicken = ₹760
+                message += `${item.quantity}x ${item.name} = ₹${item.price * item.quantity}\n`;
+            });
+
+            message += `-------------------------\n`;
+            message += `*GRAND TOTAL: ₹${total}*\n`;
+            message += `\nThank you!`;
+
+            // Encode string for URL
+            const encodedMessage = encodeURIComponent(message);
+            
+            // Generate WhatsApp URL
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=${RESTAURANT_WHATSAPP_NUMBER}&text=${encodedMessage}`;
+            
+            // Open WhatsApp
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Initialize application on load
+        window.onload = () => {
+            renderMenu();
+        };
+    </script>
+</body>
+</html>
